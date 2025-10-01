@@ -22,7 +22,9 @@ router.post('/register', async (req, res) => {
     // Create new user
     const newUser = new User({
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      completedCourses: [],
+      flagCompletedInit: false
     });
 
     // Save user to the database
