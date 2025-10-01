@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+// models/Course.js
+const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
   course_code: String,
@@ -12,4 +13,4 @@ const courseSchema = new mongoose.Schema({
   modes: [String],
 });
 
-export default mongoose.model('Course', courseSchema);
+module.exports = mongoose.model('Course', courseSchema);

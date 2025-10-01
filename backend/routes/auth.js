@@ -5,113 +5,6 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 require('dotenv').config();
 
-// POST /auth/register
-router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    // Check if the user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create new user
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      completedCourses: [],
-      flagCompletedInit: false,
-    });
-
-    // Save user to the database
-    await newUser.save();
-
-    // Create JWT token
-    const token = jwt.sign(
-      { id: newUser._id, email: newUser.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
-    // Return token and flag so user is automatically logged in
-    res.status(201).json({ 
-      message: 'User registered successfully',
-      token,
-      flagCompletedInit: false
-    });
-  } catch (err) {
-    console.error('Register error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /auth/login
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    // Find the user by email
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    // Compare entered password with hashed password in DB
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    // Create JWT token
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
-    res.json({ 
-      token,
-      flagCompletedInit: user.flagCompletedInit
-    });
-  } catch (err) {
-    console.error('❌ Register error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /auth/complete-init
-router.post('/complete-init', authenticateToken, async (req, res) => {
-  const { completedCourses, flagCompletedInit } = req.body;
-
-  try {
-    // Make sure the user exists
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // If already initialised, don’t let them overwrite
-    if (user.flagCompletedInit) {
-      return res.status(400).json({ message: "Initialisation already completed" });
-    }
-
-    // Save completed courses + mark flag
-    user.completedCourses = completedCourses;
-    user.flagCompletedInit = flagCompletedInit;
-    await user.save();
-
-    res.json({ message: "Initialisation completed successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
 // Middleware to verify token
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -124,5 +17,71 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
+
+// POST /auth/register
+router.post('/register', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      completedCourses: [],
+      flagCompletedInit: false,
+    });
+
+    await newUser.save();
+
+    const token = jwt.sign({ id: newUser._id, email: newUser.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(201).json({ token, flagCompletedInit: newUser.flagCompletedInit });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /auth/login
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: "Invalid email or password" });
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) return res.status(401).json({ message: "Invalid email or password" });
+
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({ token, flagCompletedInit: user.flagCompletedInit });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /auth/complete-init
+router.post('/complete-init', authenticateToken, async (req, res) => {
+  const { completedCourses, flagCompletedInit } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.flagCompletedInit) return res.status(400).json({ message: "Initialisation already completed" });
+
+    user.completedCourses = completedCourses;
+    user.flagCompletedInit = flagCompletedInit;
+    await user.save();
+
+    res.json({ message: "Initialisation completed successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = { router, authenticateToken };

@@ -1,16 +1,26 @@
 import { useState, useEffect } from "react";
 import Login from "./Login.jsx";
 import Register from "./Register.jsx";
+import Init from "./Init.jsx";
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
-  const [flagCompletedInit, setFlagCompletedInit] = useState(
-    localStorage.getItem("flagCompletedInit") === "true"
-  );
-  const [courses, setCourses] = useState([]);
+  const [token, setToken] = useState(null); // JWT token
+  const [flagCompletedInit, setFlagCompletedInit] = useState(null); // null = not loaded yet
   const [showRegister, setShowRegister] = useState(false);
+  const [courses, setCourses] = useState([]);
 
-  // Fetch courses only if logged in and on dashboard
+  // --- On mount, restore from localStorage ---
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    const storedFlag = localStorage.getItem("flagCompletedInit");
+
+    if (storedToken) setToken(storedToken);
+
+    if (storedFlag === "true") setFlagCompletedInit(true);
+    else setFlagCompletedInit(false);
+  }, []);
+
+  // --- Fetch courses only if logged in and onboarding complete ---
   useEffect(() => {
     if (!token || !flagCompletedInit) return;
 
@@ -25,7 +35,7 @@ function App() {
       .catch((err) => console.error(err));
   }, [token, flagCompletedInit]);
 
-  // Handles auth for both login and register
+  // --- Handle login/register success ---
   const handleAuth = (tok, flag) => {
     setToken(tok);
     setFlagCompletedInit(flag);
@@ -33,13 +43,32 @@ function App() {
     localStorage.setItem("flagCompletedInit", flag);
   };
 
-  // ROUTING LOGIC:
-  // Not logged in : show login/register
+  // --- Handle Init completion ---
+  const handleInitComplete = () => {
+    setFlagCompletedInit(true);
+    localStorage.setItem("flagCompletedInit", true);
+  };
+
+  // --- Logout ---
+  const handleLogout = () => {
+    setToken(null);
+    setFlagCompletedInit(false);
+    setCourses([]);
+    localStorage.removeItem("token");
+    localStorage.removeItem("flagCompletedInit");
+  };
+
+  // --- Routing logic ---
+
+  // If still loading localStorage, render nothing
+  if (flagCompletedInit === null) return null;
+
+  // 1️⃣ Not logged in -> show login/register
   if (!token) {
     return showRegister ? (
-      <Register 
+      <Register
         onRegister={handleAuth}
-        switchToLogin={() => setShowRegister(false)} 
+        switchToLogin={() => setShowRegister(false)}
       />
     ) : (
       <Login
@@ -49,32 +78,25 @@ function App() {
     );
   }
 
-  // Logged in but flag is false : go to /init
+  // 2️⃣ Logged in but onboarding incomplete -> show Init page
   if (!flagCompletedInit) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-        <h1 className="text-4xl font-bold">Welcome to /init - Complete your onboarding here!</h1>
-        {/* TODO: Build actual onboarding form here */}
-      </div>
-    );
+    return <Init token={token} onInitComplete={handleInitComplete} />;
   }
 
-  // Logged in and flag is true : go to /dashboard
+  // 3️⃣ Logged in and onboarding complete -> show dashboard
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-4">
       <h1 className="text-4xl font-bold mb-4">Dashboard - Courses</h1>
       <ul className="text-lg mb-6">
         {courses.map((course) => (
-          <li key={course.id}>{course.name}</li>
+          <li key={course._id}>
+            {course.course_code}: {course.course_name}
+          </li>
         ))}
       </ul>
 
       <button
-        onClick={() => {
-          setToken(null);
-          setFlagCompletedInit(false);
-          localStorage.clear();
-        }}
+        onClick={handleLogout}
         className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded font-semibold transition-colors"
       >
         Logout
