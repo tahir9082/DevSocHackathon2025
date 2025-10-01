@@ -66,6 +66,35 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /auth/complete-init
+router.post('/complete-init', authenticateToken, async (req, res) => {
+  const { completedCourses, flagCompletedInit } = req.body;
+
+  try {
+    // Make sure the user exists
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // If already initialised, don’t let them overwrite
+    if (user.flagCompletedInit) {
+      return res.status(400).json({ message: "Initialisation already completed" });
+    }
+
+    // Save completed courses + mark flag
+    user.completedCourses = completedCourses;
+    user.flagCompletedInit = flagCompletedInit;
+    await user.save();
+
+    res.json({ message: "Initialisation completed successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // Middleware to verify token
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
