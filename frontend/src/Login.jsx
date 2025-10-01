@@ -20,7 +20,7 @@ function Login({ onLogin, switchToRegister }) {
       }
 
       const data = await res.json();
-      onLogin(data.token); // pass JWT token to App
+      onLogin(data.token); // pass JWT to App
     } catch (err) {
       setError("Login failed");
       console.error(err);

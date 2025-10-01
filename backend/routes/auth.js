@@ -25,7 +25,6 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,
       completedCourses: [],
       flagCompletedInit: false,
-      degree: ""
     });
 
     // Save user to the database
