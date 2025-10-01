@@ -1,5 +1,17 @@
+// src/Init.jsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+
+/**
+ * Init.jsx
+ * - Fetches suggestions from: GET http://localhost:5000/courses/search?q=...
+ *   (backend returns [{ value: course_code, label: "CODE: Name" }, ...])
+ * - Submits to: POST http://localhost:5000/user/:id/completed-courses
+ *   body: { courses: ["COMP1111", "COMP2222"] }
+ *
+ * The component tries to extract user id from the JWT token payload (commonly stored
+ * in localStorage as 'token'). If it fails, it attempts GET /auth/me as a fallback.
+ */
 
 export default function Init({ token: propToken }) {
   const navigate = useNavigate();
@@ -7,16 +19,43 @@ export default function Init({ token: propToken }) {
 
   const token = propToken || localStorage.getItem("token");
 
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState([]); // array of course codes (strings)
   const [input, setInput] = useState("");
+  const [suggestions, setSuggestions] = useState([]); // backend shape: {value, label}
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    if (!token) navigate("/login", { replace: true });
+    if (!token) {
+      navigate("/login", { replace: true });
+    } else {
+      // try to extract userId from token
+      const extracted = extractUserIdFromJwt(token);
+      if (extracted) {
+        setUserId(extracted);
+      } else {
+        // fallback: attempt to get current user info from backend
+        (async () => {
+          try {
+            const res = await fetch("http://localhost:5000/auth/me", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            // try common fields
+            const id = data?.id || data?._id || data?.userId;
+            if (id) setUserId(id);
+          } catch (err) {
+            // ignore — userId will remain null and we'll show a helpful error on submit
+            console.warn("Could not fetch /auth/me for user id", err);
+          }
+        })();
+      }
+    }
   }, [token, navigate]);
 
+  // normalize course code (trim + uppercase)
   const normalise = (s) => s.trim().toUpperCase();
 
   const addCourse = (courseCode) => {
@@ -36,54 +75,35 @@ export default function Init({ token: propToken }) {
     setCourses((prev) => prev.filter((_, idx) => idx !== i));
   };
 
-  // Fetch suggestions from backend as user types
-useEffect(() => {
-  const fetchSuggestions = async () => {
-    if (!input.trim()) {
-      setSuggestions([]);
-      return;
-    }
-
-    try {
-      const res = await fetch(`http://localhost:5000/api/courses?query=${input}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch courses");
-      let data = await res.json();
-
-      const query = input.trim().toLowerCase();
-
-      if (!query) {
+  // Suggestions: call GET /courses/search?q=
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const q = input.trim();
+      if (!q) {
         setSuggestions([]);
         return;
       }
 
-      // Only matches where course_code starts with the query
-      const codeMatches = data.filter(c =>
-        c.course_code.toLowerCase().startsWith(query)
-      );
+      try {
+        // backend endpoint you provided: /courses/search?q=...
+        const res = await fetch(`http://localhost:5000/courses/search?q=${encodeURIComponent(q)}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        if (!res.ok) {
+          setSuggestions([]);
+          return;
+        }
+        const data = await res.json(); // expected shape: [{ value, label }, ...]
+        setSuggestions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Suggestion fetch failed:", err);
+        setSuggestions([]);
+      }
+    };
 
-      // Optional: matches where name includes query (secondary, after code matches)
-      const nameMatches = data.filter(
-        c =>
-          !c.course_code.toLowerCase().startsWith(query) &&
-          c.course_name.toLowerCase().includes(query)
-      );
-
-      // Combine code first, then name matches
-      const sorted = [...codeMatches, ...nameMatches].slice(0, 10); // limit suggestions to top 10
-      setSuggestions(sorted);
-
-
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const delayDebounce = setTimeout(fetchSuggestions, 300); // debounce
-  return () => clearTimeout(delayDebounce);
-}, [input, token]);
-
+    const t = setTimeout(fetchSuggestions, 250); // debounce
+    return () => clearTimeout(t);
+  }, [input, token]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -98,7 +118,16 @@ useEffect(() => {
     e.preventDefault();
     setError("");
 
-    if (!token) return navigate("/login", { replace: true });
+    if (!token) {
+      setError("Authentication required.");
+      return navigate("/login", { replace: true });
+    }
+
+    if (!userId) {
+      setError("Could not determine current user. Please ensure you are logged in.");
+      return;
+    }
+
     if (courses.length === 0) {
       setError("Please add at least one course.");
       inputRef.current?.focus();
@@ -107,22 +136,28 @@ useEffect(() => {
 
     setSubmitting(true);
     try {
-      const res = await fetch("http://localhost:5000/auth/complete-init", {
+      const res = await fetch(`http://localhost:5000/user/${encodeURIComponent(userId)}/completed-courses`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ completedCourses: courses, flagCompletedInit: true }),
+        body: JSON.stringify({ courses }), // backend expects { courses: [ "COMP1111" ] }
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        setError(data?.message || "Failed to submit");
+        // try to show backend message
+        let msg = "Failed to save courses";
+        try {
+          const data = await res.json();
+          if (data?.error || data?.message) msg = data.error || data.message;
+        } catch (err) {}
+        setError(msg);
         setSubmitting(false);
         return;
       }
 
+      // success -> redirect to dashboard
       navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error(err);
@@ -134,9 +169,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white px-4">
       <div className="bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-lg">
-        <h2 className="text-3xl font-extrabold mb-4 text-center">
-          Add your completed courses
-        </h2>
+        <h2 className="text-3xl font-extrabold mb-4 text-center">Add your completed courses</h2>
 
         <form onSubmit={handleSubmit}>
           <label className="block mb-2 font-semibold">Completed Courses</label>
@@ -144,12 +177,9 @@ useEffect(() => {
           {/* Tags */}
           <div className="min-h-[56px] mb-4 p-2 rounded bg-gray-700 flex flex-wrap gap-2 items-center">
             {courses.map((c, i) => (
-              <div
-                key={c + i}
-                className="flex items-center space-x-2 bg-gray-600 px-3 py-1 rounded-full text-sm"
-              >
+              <div key={c + i} className="flex items-center space-x-2 bg-gray-600 px-3 py-1 rounded-full text-sm">
                 <span className="font-semibold">{c}</span>
-                <button type="button" onClick={() => removeCourse(i)}>
+                <button type="button" onClick={() => removeCourse(i)} className="text-gray-300 hover:text-white leading-none">
                   ×
                 </button>
               </div>
@@ -161,21 +191,21 @@ useEffect(() => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type course code"
+              placeholder="Type course code (or choose a suggestion)"
               className="flex-1 min-w-[150px] bg-transparent outline-none px-2 py-1 text-white"
             />
           </div>
 
-          {/* Suggestions */}
+          {/* Suggestions (backend gives {value, label}) */}
           {suggestions.length > 0 && (
             <ul className="bg-gray-700 rounded p-2 mb-4 max-h-40 overflow-y-auto">
               {suggestions.map((s) => (
                 <li
-                  key={s._id}
+                  key={s.value}
                   className="p-1 hover:bg-gray-600 cursor-pointer"
-                  onClick={() => addCourse(s.course_code)}
+                  onClick={() => addCourse(s.value)}
                 >
-                  {s.course_code} - {s.course_name}
+                  {s.label || s.value}
                 </li>
               ))}
             </ul>
@@ -184,18 +214,10 @@ useEffect(() => {
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded"
-            >
+            <button type="submit" disabled={submitting} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition-colors disabled:opacity-60">
               {submitting ? "Submitting..." : "Submit"}
             </button>
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard")}
-              className="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded"
-            >
+            <button type="button" onClick={() => navigate("/dashboard")} className="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition-colors">
               Skip
             </button>
           </div>
@@ -203,4 +225,21 @@ useEffect(() => {
       </div>
     </div>
   );
+}
+
+/* ---------- Helpers ---------- */
+
+/**
+ * Try to decode a JWT (without verifying) and extract a likely user id.
+ * Looks for properties: id, _id, userId, sub
+ */
+function extractUserIdFromJwt(token) {
+  try {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return payload.id || payload._id || payload.userId || payload.sub || null;
+  } catch (err) {
+    return null;
+  }
 }
