@@ -30,20 +30,22 @@ router.post('/register', async (req, res) => {
 
     // Save user to the database
     await newUser.save();
-    
+
     // Create JWT token
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: newUser._id, email: newUser.email },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
+    // Return token and flag so user is automatically logged in
     res.status(201).json({ 
       message: 'User registered successfully',
       token,
-      flagCompletedInit 
+      flagCompletedInit: false
     });
   } catch (err) {
+    console.error('Register error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -77,6 +79,7 @@ router.post('/login', async (req, res) => {
       flagCompletedInit: user.flagCompletedInit
     });
   } catch (err) {
+    console.error('❌ Register error:', err);
     res.status(500).json({ error: err.message });
   }
 });
