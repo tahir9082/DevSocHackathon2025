@@ -21,8 +21,9 @@ function Register({ onRegister, switchToLogin }) {
         return;
       }
 
-      setSuccess("Registration successful! Please login.");
-      setError("");
+      const data = await res.json();
+      onRegister(data.token, data.flagCompletedInit);
+
     } catch (err) {
       setError("Registration failed");
       console.error(err);
@@ -56,7 +57,6 @@ function Register({ onRegister, switchToLogin }) {
         />
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
-        {success && <p className="text-green-500 mb-4">{success}</p>}
 
         <button
           type="submit"
