@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     ]
   },
   flagCompletedInit: { type: Boolean, default: false },
+  degree: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
