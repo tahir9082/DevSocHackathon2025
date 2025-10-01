@@ -1,8 +1,9 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-// const { MongoClient } = require('mongodb');
+const mongoose = require('mongoose')
+const { router: authRouter, authenticateToken } = require('./routes/auth');
 const apiRoutes = require('./routes/api');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
@@ -10,16 +11,17 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
-// Skip MongoDB connection for now
-// if (process.env.MONGO_URI) {
-//   MongoClient.connect(process.env.MONGO_URI)
-//     .then(() => console.log("MongoDB connected"))
-//     .catch(err => console.error(err));
-// } else {
-//   console.log("No MongoDB URI provided, skipping DB connection.");
-// }
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("MongoDB connected"))
+.catch((err) => console.error("MongoDB connection error:", err));
 
-app.use('/api', apiRoutes);
+
+app.use('/auth', authRouter);
+
+app.use('/api', authenticateToken, apiRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
