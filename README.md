@@ -25,7 +25,13 @@ When it comes to choosing subjects, it is often difficult to decide how relevant
 
 ### 2.2. Proposed design
 
-Images of final frontend
+<img width="2522" height="1243" alt="image" src="https://github.com/user-attachments/assets/43999e46-35eb-413b-af94-89303bd6fb6b" />
+<img width="2500" height="1239" alt="image" src="https://github.com/user-attachments/assets/8b613c9f-7ce4-4651-9ca3-7bdfc6b181ef" />
+<img width="2532" height="1238" alt="image" src="https://github.com/user-attachments/assets/4c7443f3-a462-495e-bc11-7a358733c2f3" />
+<img width="2495" height="1203" alt="image" src="https://github.com/user-attachments/assets/e8b0aba3-ba7b-41eb-b922-7555d1f6a14c" />
+<img width="2454" height="1234" alt="image" src="https://github.com/user-attachments/assets/6e376266-ad1f-4861-9c8e-a58151dcb49c" />
+<img width="2525" height="1246" alt="image" src="https://github.com/user-attachments/assets/7038138a-d48a-4a63-98e4-72893b4885f3" />
+
 
 ## 3. Getting Started
 
