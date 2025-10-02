@@ -1,6 +1,7 @@
 // src/App.jsx
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import Header from "./components/Header";
 import Login from "./Login";
 import Register from "./Register";
 import Init from "./Init";
@@ -52,41 +53,50 @@ export default function App() {
   if (flagCompletedInit === null) return null;
 
   return (
-    <Routes>
-      {/* Root "/" — show login/register UI (no redirect) */}
-      <Route
-        path="/"
-        element={<Login onLogin={handleAuth} switchToRegister={() => { /* not used here */ }} />}
-      />
-      <Route
-        path="/register"
-        element={<Register onRegister={handleAuth} switchToLogin={() => { /* not used */ }} />}
-      />
+    <>
+      <Header />
 
-      {/* Init - protected */}
-      <Route
-        path="/init"
-        element={
-          <RequireAuth token={token}>
-            <Init token={token} onInitComplete={handleInitComplete} />
-          </RequireAuth>
-        }
-      />
+      {/* Page shell with roomy gradient background */}
+      <div className="min-h-screen pt-24 pb-10 bg-gradient-to-b from-gray-900 via-neutral-900 to-indigo-950">
+        <div className="max-w-6xl mx-auto px-4">
+          <Routes>
+            {/* Root "/" — show login/register UI (no redirect) */}
+            <Route
+              path="/"
+              element={<Login onLogin={handleAuth} switchToRegister={() => {}} />}
+            />
+            <Route
+              path="/register"
+              element={<Register onRegister={handleAuth} switchToRegister={() => {}} />}
+            />
 
-      {/* Recommendations - protected and requires onboarding */}
-      <Route
-        path="/recommendations"
-        element={
-          <RequireAuth token={token}>
-            <RequireInitComplete flagCompletedInit={flagCompletedInit}>
-              <Recommendations token={token} />
-            </RequireInitComplete>
-          </RequireAuth>
-        }
-      />
+            {/* Init - protected */}
+            <Route
+              path="/init"
+              element={
+                <RequireAuth token={token}>
+                  <Init token={token} onInitComplete={handleInitComplete} />
+                </RequireAuth>
+              }
+            />
 
-      {/* Catch-all -> show login (keeps behaviour simple) */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+            {/* Recommendations - protected and requires onboarding */}
+            <Route
+              path="/recommendations"
+              element={
+                <RequireAuth token={token}>
+                  <RequireInitComplete flagCompletedInit={flagCompletedInit}>
+                    <Recommendations token={token} />
+                  </RequireInitComplete>
+                </RequireAuth>
+              }
+            />
+
+            {/* Catch-all -> show login */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </div>
+    </>
   );
 }

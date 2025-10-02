@@ -190,13 +190,13 @@ export default function Recommendations({ token: propToken }) {
 
   return (
     <div className="min-h-screen flex items-start justify-center bg-gray-900 text-white px-4 py-8">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-4xl card-entrance">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-extrabold">Recommendations</h1>
           <div className="flex items-center gap-3">
             <button
               onClick={() => { setRefreshKey((k) => k + 1); setLoading(true); }}
-              className="py-2 px-3 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+              className="py-2 px-3 bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 rounded text-sm text-white"
             >
               Refresh
             </button>
@@ -205,13 +205,13 @@ export default function Recommendations({ token: propToken }) {
                 setTiers({ strong: [], moderate: [], weak: [] });
                 setExpanded({});
               }}
-              className="py-2 px-3 bg-gray-600 hover:bg-gray-500 rounded text-sm"
+              className="py-2 px-3 bg-gray-700 hover:bg-gray-600 rounded text-sm"
             >
               Clear
             </button>
             <button
               onClick={handleLogout}
-              className="py-2 px-3 bg-red-600 hover:bg-red-700 rounded text-sm"
+              className="py-2 px-3 bg-red-600 hover:bg-red-700 rounded text-sm text-white"
             >
               Logout
             </button>
@@ -225,8 +225,10 @@ export default function Recommendations({ token: propToken }) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Strong */}
-            <section className="bg-gray-800 p-4 rounded">
-              <h2 className="text-xl font-semibold mb-3">Strong</h2>
+            <section className="glass-card p-4 rounded-2xl">
+              <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" /> Strong
+              </h2>
               {tiers.strong.length === 0 ? (
                 <div className="text-sm text-gray-400">No strong recommendations.</div>
               ) : (
@@ -235,8 +237,10 @@ export default function Recommendations({ token: propToken }) {
             </section>
 
             {/* Moderate */}
-            <section className="bg-gray-800 p-4 rounded">
-              <h2 className="text-xl font-semibold mb-3">Moderate</h2>
+            <section className="glass-card p-4 rounded-2xl">
+              <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-yellow-400 inline-block" /> Strong
+              </h2>
               {tiers.moderate.length === 0 ? (
                 <div className="text-sm text-gray-400">No moderate recommendations.</div>
               ) : (
@@ -245,8 +249,10 @@ export default function Recommendations({ token: propToken }) {
             </section>
 
             {/* Weak */}
-            <section className="bg-gray-800 p-4 rounded">
-              <h2 className="text-xl font-semibold mb-3">Weak</h2>
+            <section className="glass-card p-4 rounded-2xl">
+              <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-sky-400 inline-block" /> Strong
+              </h2>
               {tiers.weak.length === 0 ? (
                 <div className="text-sm text-gray-400">No weak recommendations.</div>
               ) : (

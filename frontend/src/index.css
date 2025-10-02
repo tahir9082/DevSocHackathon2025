@@ -1,3 +1,39 @@
 @import "tailwindcss";
 
+/* ---------- UI polish (paste into src/index.css) ---------- */
+
+/* subtle float animation for logo */
+@keyframes logoFloat {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(-0.8deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+.animate-logo-float { animation: logoFloat 4s ease-in-out infinite; }
+
+/* smoother focus outlines */
+:focus { outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,0.10); border-radius: 8px; }
+
+/* small card entrance */
+.card-entrance { transform: translateY(6px); opacity: 0; animation: cardIn 420ms cubic-bezier(.22,.9,.3,1) forwards; }
+@keyframes cardIn { to { transform: translateY(0); opacity: 1; } }
+
+/* nicer scrollbar for suggestion dropdown */
+#course-suggestions::-webkit-scrollbar { width: 8px; }
+#course-suggestions::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 999px; }
+
+/* vibrant gradient text utility */
+.text-accent {
+  background: linear-gradient(90deg,#ff7ab6,#7b61ff 60%,#00e0ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* subtle elevated glass border for cards */
+.glass-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.40));
+  border: 1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(6px);
+}
+
 @tailwind utilities;

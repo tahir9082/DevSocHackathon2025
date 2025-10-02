@@ -40,13 +40,13 @@ function Login({ onLogin, switchToRegister }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-4">
-      <h1 className="text-5xl font-extrabold mb-8 text-center">
+      <h1 className="text-5xl font-extrabold mb-6 text-center text-accent">
         Welcome to DevSoc Hackathon 2025
       </h1>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm"
+        className="glass-card card-entrance p-6 rounded-2xl shadow-2xl w-full max-w-sm"
       >
         <label className="block mb-2 font-semibold">Email</label>
         <input
@@ -70,7 +70,7 @@ function Login({ onLogin, switchToRegister }) {
 
         <button
           type="submit"
-          className="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition-colors"
+          className="w-full py-2 rounded font-semibold text-white bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 transition-colors"
         >
           Login
         </button>

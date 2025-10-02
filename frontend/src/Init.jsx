@@ -20,6 +20,32 @@ export default function Init({ token: propToken, onInitComplete }) {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [degree, setDegree] = useState(""); // e.g. "BSc Computer Science"
+  const [interestInput, setInterestInput] = useState("");
+  const [interests, setInterests] = useState([]); // array of strings for "Personal Interests"
+  const [courseType, setCourseType] = useState("Free Elective"); // default selection
+  const addInterest = (raw) => {
+    const val = (raw || "").trim();
+    if (!val) return;
+    const up = val;
+    if (interests.includes(up)) return;
+    setInterests((p) => [...p, up]);
+    setInterestInput("");
+  };
+
+  // remove interest
+  const removeInterest = (idx) => {
+    setInterests((p) => p.filter((_, i) => i !== idx));
+  };
+
+  const handleInterestKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === "," || e.key === " ") {
+      e.preventDefault();
+      if (interestInput.trim()) addInterest(interestInput);
+    } else if (e.key === "Backspace" && interestInput === "" && interests.length) {
+      removeInterest(interests.length - 1);
+    }
+  };
 
   useEffect(() => {
     if (!token) {
@@ -164,18 +190,26 @@ export default function Init({ token: propToken, onInitComplete }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white px-4">
-      <div className="bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-lg">
-        <h2 className="text-3xl font-extrabold mb-4 text-center">Add your completed courses</h2>
+      <div className="glass-card card-entrance p-6 rounded-2xl shadow-2xl w-full max-w-lg">
+        <h2 className="text-3xl font-extrabold mb-4 text-center">
+          Add your completed courses
+        </h2>
 
         <form onSubmit={handleSubmit}>
+          {/* Completed Courses */}
           <label className="block mb-2 font-semibold">Completed Courses</label>
-
-          {/* Tags */}
-          <div className="min-h-[56px] mb-4 p-2 rounded bg-gray-700 flex flex-wrap gap-2 items-center">
+          <div className="relative min-h-[56px] mb-4 p-2 rounded bg-gray-700 flex flex-wrap gap-2 items-center overflow-visible">
             {courses.map((c, i) => (
-              <div key={c + i} className="flex items-center space-x-2 bg-gray-600 px-3 py-1 rounded-full text-sm">
+              <div
+                key={c + i}
+                className="flex items-center space-x-2 bg-gray-600 px-3 py-1 rounded-full text-sm"
+              >
                 <span className="font-semibold">{c}</span>
-                <button type="button" onClick={() => removeCourse(i)} className="text-gray-300 hover:text-white leading-none">
+                <button
+                  type="button"
+                  onClick={() => removeCourse(i)}
+                  className="text-gray-300 hover:text-white leading-none"
+                >
                   ×
                 </button>
               </div>
@@ -189,17 +223,27 @@ export default function Init({ token: propToken, onInitComplete }) {
               onKeyDown={handleKeyDown}
               placeholder="Type course code (or choose a suggestion)"
               className="flex-1 min-w-[150px] bg-transparent outline-none px-2 py-1 text-white"
+              aria-autocomplete="list"
+              aria-controls="course-suggestions"
             />
           </div>
 
-          {/* Suggestions (backend gives {value, label}) */}
+          {/* Suggestions */}
           {suggestions.length > 0 && (
-            <ul className="bg-gray-700 rounded p-2 mb-4 max-h-40 overflow-y-auto">
+            <ul
+              id="course-suggestions"
+              role="listbox"
+              className="absolute left-0 right-0 z-50 mt-2 bg-gray-700 rounded p-2 max-h-44 overflow-y-auto shadow-lg"
+              style={{ listStyleType: "none" }}
+            >
               {suggestions.map((s) => (
                 <li
                   key={s.value}
-                  className="p-1 hover:bg-gray-600 cursor-pointer"
+                  role="option"
+                  tabIndex={0}
+                  className="p-2 hover:bg-gray-600 cursor-pointer rounded"
                   onClick={() => addCourse(s.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') addCourse(s.value); }}
                 >
                   {s.label || s.value}
                 </li>
@@ -207,13 +251,89 @@ export default function Init({ token: propToken, onInitComplete }) {
             </ul>
           )}
 
+
+          {/* Extra onboarding (UI-only) */}
+          <div className="mt-4 p-4 rounded bg-gray-800 border border-gray-700">
+            {/* Degree */}
+            <label className="block text-sm font-semibold mb-2">
+              Degree (optional)
+            </label>
+            <input
+              value={degree}
+              onChange={(e) => setDegree(e.target.value)}
+              placeholder="e.g. BSc (Computer Science)"
+              className="w-full mb-3 px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            {/* Personal Interests */}
+            <label className="block text-sm font-semibold mb-2">
+              Personal interests (optional)
+            </label>
+            <div className="min-h-[44px] mb-3 p-2 rounded bg-gray-700 flex flex-wrap gap-2 items-center">
+              {interests.map((it, i) => (
+                <div
+                  key={it + i}
+                  className="flex items-center space-x-2 bg-gray-600 px-3 py-1 rounded-full text-sm"
+                >
+                  <span className="font-semibold">{it}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeInterest(i)}
+                    className="text-gray-300 hover:text-white leading-none"
+                    aria-label={`Remove ${it}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              <input
+                value={interestInput}
+                onChange={(e) => setInterestInput(e.target.value)}
+                onKeyDown={handleInterestKeyDown}
+                placeholder="Add an interest (press Enter)"
+                className="flex-1 min-w-[140px] bg-transparent outline-none px-2 py-1 text-white"
+              />
+            </div>
+
+            {/* Type of course */}
+            <label className="block text-sm font-semibold mb-2">
+              Type of course (optional)
+            </label>
+            <select
+              value={courseType}
+              onChange={(e) => setCourseType(e.target.value)}
+              className="w-full mb-1 px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option>Free Elective</option>
+              <option>General Education</option>
+              <option>Core Course</option>
+              <option>Degree Elective</option>
+            </select>
+
+            <p className="text-xs text-gray-400 mt-2">
+              These options are for demo purposes only — they won't be saved to
+              the server yet.
+            </p>
+          </div>
+
+          {/* Error */}
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
+          {/* Buttons */}
           <div className="flex gap-3">
-            <button type="submit" disabled={submitting} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition-colors disabled:opacity-60">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 py-2 rounded font-semibold text-white bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 transition-colors disabled:opacity-60"
+            >
               {submitting ? "Submitting..." : "Submit"}
             </button>
-            <button type="button" onClick={handleSkip} className="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition-colors">
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition-colors"
+            >
               Skip
             </button>
           </div>

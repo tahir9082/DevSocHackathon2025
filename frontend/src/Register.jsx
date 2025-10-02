@@ -40,11 +40,11 @@ function Register({ onRegister, switchToLogin }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-4">
-      <h1 className="text-5xl font-extrabold mb-8 text-center">Register</h1>
+      <h1 className="text-5xl font-extrabold mb-6 text-center text-accent">Register</h1>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-sm"
+        className="glass-card card-entrance p-6 rounded-2xl shadow-2xl w-full max-w-sm"
       >
         <label className="block mb-2 font-semibold">Email</label>
         <input
@@ -68,7 +68,7 @@ function Register({ onRegister, switchToLogin }) {
 
         <button
           type="submit"
-          className="w-full py-2 bg-green-600 hover:bg-green-700 rounded font-semibold transition-colors"
+          className="w-full py-2 rounded font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 transition-colors"
         >
           Register
         </button>
