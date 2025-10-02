@@ -29,18 +29,7 @@ Images of final frontend
 
 ## 3. Getting Started
 
-### 3.1. Frontend
-
-```
-// Setup
-cd ./frontend
-npm install
-
-// Running frontend
-npm run dev
-```
-
-### 3.2. Backend
+### 3.1. Backend
 
 ```
 // Setup
@@ -49,6 +38,17 @@ npm install
 
 // Running backend
 node index.js
+```
+
+### 3.2. Frontend
+
+```
+// Setup
+cd ./frontend
+npm install
+
+// Running frontend
+npm run dev
 ```
 
 ### 3.3. DB
