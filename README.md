@@ -1,8 +1,8 @@
-# DevSocHackathon2025
-2025 devsoc hackathon submission
+# Reco
+2025 DevSoc Flagship Hackathon
 By; Tahir, Mahir, Alfis, David
-# Project Reco
 
+## "Your WAM is in safe hands."
 ## 🏹: 1. Motivation 
 
 Picking courses at UNSW can sometimes be challenging, especially as a first year student without a general idea of what you'd like to pursue as a career.
