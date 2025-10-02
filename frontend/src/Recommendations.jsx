@@ -14,6 +14,7 @@ function extractUserIdFromJwt(token) {
 }
 
 export default function Recommendations({ token: propToken }) {
+  console.log("Recommendations mounted"); // <-- add this
   const navigate = useNavigate();
   const token = propToken || localStorage.getItem("token");
 

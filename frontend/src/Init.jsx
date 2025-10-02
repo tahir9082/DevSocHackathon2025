@@ -4,16 +4,11 @@ import { useNavigate } from "react-router-dom";
 
 /**
  * Init.jsx
- * - Fetches suggestions from: GET http://localhost:5000/courses/search?q=...
- *   (backend returns [{ value: course_code, label: "CODE: Name" }, ...])
- * - Submits to: POST http://localhost:5000/user/:id/completed-courses
- *   body: { courses: ["COMP1111", "COMP2222"] }
- *
- * The component tries to extract user id from the JWT token payload (commonly stored
- * in localStorage as 'token'). If it fails, it attempts GET /auth/me as a fallback.
+ * - POSTs to: POST http://localhost:5000/user/:id/completed-courses
+ * - Calls onInitComplete() on success so parent flips flagCompletedInit.
  */
 
-export default function Init({ token: propToken }) {
+export default function Init({ token: propToken, onInitComplete }) {
   const navigate = useNavigate();
   const inputRef = useRef(null);
 
@@ -30,12 +25,10 @@ export default function Init({ token: propToken }) {
     if (!token) {
       navigate("/login", { replace: true });
     } else {
-      // try to extract userId from token
       const extracted = extractUserIdFromJwt(token);
       if (extracted) {
         setUserId(extracted);
       } else {
-        // fallback: attempt to get current user info from backend
         (async () => {
           try {
             const res = await fetch("http://localhost:5000/auth/me", {
@@ -43,11 +36,9 @@ export default function Init({ token: propToken }) {
             });
             if (!res.ok) return;
             const data = await res.json();
-            // try common fields
             const id = data?.id || data?._id || data?.userId;
             if (id) setUserId(id);
           } catch (err) {
-            // ignore — userId will remain null and we'll show a helpful error on submit
             console.warn("Could not fetch /auth/me for user id", err);
           }
         })();
@@ -55,7 +46,6 @@ export default function Init({ token: propToken }) {
     }
   }, [token, navigate]);
 
-  // normalize course code (trim + uppercase)
   const normalise = (s) => s.trim().toUpperCase();
 
   const addCourse = (courseCode) => {
@@ -85,7 +75,6 @@ export default function Init({ token: propToken }) {
       }
 
       try {
-        // backend endpoint you provided: /courses/search?q=...
         const res = await fetch(`http://localhost:5000/courses/search?q=${encodeURIComponent(q)}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
@@ -142,11 +131,10 @@ export default function Init({ token: propToken }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ courses }), // backend expects { courses: [ "COMP1111" ] }
+        body: JSON.stringify({ courses }),
       });
 
       if (!res.ok) {
-        // try to show backend message
         let msg = "Failed to save courses";
         try {
           const data = await res.json();
@@ -157,13 +145,21 @@ export default function Init({ token: propToken }) {
         return;
       }
 
-      // success -> redirect to dashboard
+      // Success: notify parent, stop submitting, then navigate to recommendations
+      if (typeof onInitComplete === "function") onInitComplete();
+      setSubmitting(false);
       navigate("/recommendations", { replace: true });
     } catch (err) {
       console.error(err);
       setError("Network error. Please try again.");
       setSubmitting(false);
     }
+  };
+
+  const handleSkip = () => {
+    // Mark onboarding done and go straight to recommendations
+    if (typeof onInitComplete === "function") onInitComplete();
+    navigate("/recommendations", { replace: true });
   };
 
   return (
@@ -217,7 +213,7 @@ export default function Init({ token: propToken }) {
             <button type="submit" disabled={submitting} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition-colors disabled:opacity-60">
               {submitting ? "Submitting..." : "Submit"}
             </button>
-            <button type="button" onClick={() => navigate("/recommendations")} className="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition-colors">
+            <button type="button" onClick={handleSkip} className="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition-colors">
               Skip
             </button>
           </div>
@@ -228,11 +224,6 @@ export default function Init({ token: propToken }) {
 }
 
 /* ---------- Helpers ---------- */
-
-/**
- * Try to decode a JWT (without verifying) and extract a likely user id.
- * Looks for properties: id, _id, userId, sub
- */
 function extractUserIdFromJwt(token) {
   try {
     const parts = token.split(".");

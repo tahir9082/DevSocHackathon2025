@@ -1,9 +1,12 @@
+// src/Login.jsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login({ onLogin, switchToRegister }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,7 +23,15 @@ function Login({ onLogin, switchToRegister }) {
       }
 
       const data = await res.json();
-      onLogin(data.token, data.flagCompletedInit); // pass JWT token to App
+      // data.token and data.flagCompletedInit expected
+      onLogin(data.token, data.flagCompletedInit);
+
+      // Navigate depending on onboard flag
+      if (data.flagCompletedInit) {
+        navigate("/recommendations", { replace: true });
+      } else {
+        navigate("/init", { replace: true });
+      }
     } catch (err) {
       setError("Login failed");
       console.error(err);
@@ -68,7 +79,7 @@ function Login({ onLogin, switchToRegister }) {
           Don't have an account?{" "}
           <button
             type="button"
-            onClick={switchToRegister}
+            onClick={() => navigate("/register")}
             className="text-blue-400 hover:underline"
           >
             Register

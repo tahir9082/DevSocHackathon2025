@@ -30,6 +30,29 @@ router.get('/courses/search', async (req, res) => {
   }
 });
 
+// GET /user/:id
+// Returns basic user info (used as a fallback by frontend)
+router.get('/user/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Missing user id' });
+
+    const user = await User.findById(id).lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    return res.json({
+      _id: user._id,
+      email: user.email,
+      completedCourses: user.completedCourses || [],
+      flagCompletedInit: !!user.flagCompletedInit,
+    });
+  } catch (err) {
+    console.error('GET /user/:id error', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 // --- Save completed courses endpoint ---
 router.post('/user/:id/completed-courses', async (req, res) => {
   try {

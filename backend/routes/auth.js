@@ -18,6 +18,29 @@ function authenticateToken(req, res, next) {
   });
 }
 
+// GET /auth/me
+// Returns basic current-user info using authenticateToken middleware
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(400).json({ error: 'No user id in token' });
+
+    const user = await User.findById(userId).lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    return res.json({
+      _id: user._id,
+      email: user.email,
+      completedCourses: user.completedCourses || [],
+      flagCompletedInit: !!user.flagCompletedInit,
+    });
+  } catch (err) {
+    console.error('/auth/me error', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 // POST /auth/register
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;

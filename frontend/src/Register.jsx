@@ -1,10 +1,12 @@
+// src/Register.jsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Register({ onRegister, switchToLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,7 +18,7 @@ function Register({ onRegister, switchToLogin }) {
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setError(data.message || "Registration failed");
         return;
       }
@@ -24,6 +26,12 @@ function Register({ onRegister, switchToLogin }) {
       const data = await res.json();
       onRegister(data.token, data.flagCompletedInit);
 
+      // Navigate based on flag
+      if (data.flagCompletedInit) {
+        navigate("/recommendations", { replace: true });
+      } else {
+        navigate("/init", { replace: true });
+      }
     } catch (err) {
       setError("Registration failed");
       console.error(err);
@@ -69,7 +77,7 @@ function Register({ onRegister, switchToLogin }) {
           Already have an account?{" "}
           <button
             type="button"
-            onClick={switchToLogin}
+            onClick={() => navigate("/")}
             className="text-blue-400 hover:underline"
           >
             Login
