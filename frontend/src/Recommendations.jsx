@@ -14,14 +14,14 @@ function extractUserIdFromJwt(token) {
 }
 
 export default function Recommendations({ token: propToken }) {
-  console.log("Recommendations mounted"); // <-- add this
+  console.log("Recommendations mounted");
   const navigate = useNavigate();
   const token = propToken || localStorage.getItem("token");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [tiers, setTiers] = useState({ strong: [], moderate: [], weak: [] });
-  const [expanded, setExpanded] = useState({}); // track which course_code is expanded
+  const [expanded, setExpanded] = useState({});
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -29,17 +29,12 @@ export default function Recommendations({ token: propToken }) {
   }, [token, navigate]);
 
   useEffect(() => {
-    // main flow:
-    // 1) try GET /auth/me to obtain completedCourses
-    // 2) if not available, try to decode token and GET /user/:id
-    // 3) POST /recommendations with { completedCourses }
     let cancelled = false;
 
     async function fetchUserCompletedCourses() {
       setLoading(true);
       setError("");
       try {
-        // Try /auth/me first
         if (token) {
           try {
             const meRes = await fetch("http://localhost:5000/auth/me", {
@@ -47,12 +42,9 @@ export default function Recommendations({ token: propToken }) {
             });
             if (meRes.ok) {
               const meData = await meRes.json();
-              // expecting meData.completedCourses as either [{courseId: 'CODE'}] or ['CODE', ...]
               if (meData) {
-                // normalize to array of strings
                 let completed = [];
                 if (Array.isArray(meData.completedCourses)) {
-                  // handle array of objects or array of strings
                   completed = meData.completedCourses.map((c) =>
                     typeof c === "string" ? c : c.courseId || c.course_code || ""
                   ).filter(Boolean);
@@ -62,12 +54,9 @@ export default function Recommendations({ token: propToken }) {
                 if (completed.length) return completed;
               }
             }
-          } catch (err) {
-            // ignore and fallback
-          }
+          } catch (err) {}
         }
 
-        // fallback: try /user/:id if token contains id
         const decodedId = token ? extractUserIdFromJwt(token) : null;
         if (decodedId) {
           try {
@@ -76,21 +65,16 @@ export default function Recommendations({ token: propToken }) {
             });
             if (uRes.ok) {
               const u = await uRes.json();
-              if (u) {
-                if (Array.isArray(u.completedCourses)) {
-                  const completed = u.completedCourses.map(c =>
-                    typeof c === "string" ? c : c.courseId || c.course_code || ""
-                  ).filter(Boolean);
-                  if (completed.length) return completed;
-                }
+              if (u && Array.isArray(u.completedCourses)) {
+                const completed = u.completedCourses.map(c =>
+                  typeof c === "string" ? c : c.courseId || c.course_code || ""
+                ).filter(Boolean);
+                if (completed.length) return completed;
               }
             }
-          } catch (err) {
-            // ignore and fallback
-          }
+          } catch (err) {}
         }
 
-        // final fallback: try read from localStorage (e.g. dev)
         const local = localStorage.getItem("completedCourses");
         if (local) {
           try {
@@ -137,7 +121,6 @@ export default function Recommendations({ token: propToken }) {
           setTiers({ strong: [], moderate: [], weak: [] });
         } else {
           const data = await res.json();
-          // expect data.strong/.moderate/.weak arrays
           setTiers({
             strong: Array.isArray(data.strong) ? data.strong : [],
             moderate: Array.isArray(data.moderate) ? data.moderate : [],
@@ -163,17 +146,21 @@ export default function Recommendations({ token: propToken }) {
     setExpanded((prev) => ({ ...prev, [code]: !prev[code] }));
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("completedCourses");
+    navigate("/login", { replace: true });
+  };
+
   const renderCourseCard = (c) => {
-    const code = c.course_code || c.value || c.courseId || c.course_code;
+    const code = c.course_code || c.value || c.courseId;
     const name = c.course_name || c.label || "";
     const score = typeof c.score !== "undefined" ? c.score : null;
 
     return (
       <div key={code} className="mb-3">
         <div className="flex items-center gap-3">
-          <div className="bg-gray-600 px-4 py-2 rounded-full font-semibold text-sm">
-            {code}
-          </div>
+          <div className="bg-gray-600 px-4 py-2 rounded-full font-semibold text-sm">{code}</div>
           <div className="flex-1">
             <div className="text-sm text-gray-300">{name}</div>
             <button
@@ -184,9 +171,7 @@ export default function Recommendations({ token: propToken }) {
               {expanded[code] ? "Hide details" : "Show details"}
             </button>
           </div>
-          {score !== null && (
-            <div className="text-xs text-gray-400 ml-2">{Number(score).toFixed(2)}</div>
-          )}
+          {score !== null && <div className="text-xs text-gray-400 ml-2">{Number(score).toFixed(2)}</div>}
         </div>
 
         {expanded[code] && (
@@ -223,6 +208,12 @@ export default function Recommendations({ token: propToken }) {
               className="py-2 px-3 bg-gray-600 hover:bg-gray-500 rounded text-sm"
             >
               Clear
+            </button>
+            <button
+              onClick={handleLogout}
+              className="py-2 px-3 bg-red-600 hover:bg-red-700 rounded text-sm"
+            >
+              Logout
             </button>
           </div>
         </div>
