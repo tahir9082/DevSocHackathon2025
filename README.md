@@ -11,7 +11,7 @@ Perhaps you're a third year student regretting the decision to do Computer Scien
 
 Even though UNSW provides a course handbook, traversing something that information heavy can be overwhelming for most students.
 
-What do you search for? How can you filter based on core topics? How can you choose the subjects based on your interests?
+What do you search for? How can you filter based on core topics? How can you choose the subjects based on your interests? Potential career paths?
 
 The point is, as useful as the UNSW handbook might be, it lacks the personalised experience that we provide with our solution.
 
