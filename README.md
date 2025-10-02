@@ -21,7 +21,7 @@ This is how our project, Reco, came to be. A course planner app that suggests co
 
 ### 2.1. Product Introduction 
 
-When it comes to choosing subjects, it is often difficult to decide how relevant a course will be for your career or whether it suits your interests. Our product aims to minimise this confusion.
+When it comes to choosing subjects, it is often difficult to decide how relevant a course will be for your career or whether it suits your interests. Our product aims to simplify this task.
 
 ### 2.2. Proposed design
 
