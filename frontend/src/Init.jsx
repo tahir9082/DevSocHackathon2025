@@ -158,7 +158,7 @@ export default function Init({ token: propToken }) {
       }
 
       // success -> redirect to dashboard
-      navigate("/dashboard", { replace: true });
+      navigate("/recommendations", { replace: true });
     } catch (err) {
       console.error(err);
       setError("Network error. Please try again.");
@@ -217,7 +217,7 @@ export default function Init({ token: propToken }) {
             <button type="submit" disabled={submitting} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition-colors disabled:opacity-60">
               {submitting ? "Submitting..." : "Submit"}
             </button>
-            <button type="button" onClick={() => navigate("/dashboard")} className="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition-colors">
+            <button type="button" onClick={() => navigate("/recommendations")} className="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition-colors">
               Skip
             </button>
           </div>

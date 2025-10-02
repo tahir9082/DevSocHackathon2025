@@ -20,7 +20,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 // Routes
 app.use('/auth', authRoutes.router);
 app.use('/api', apiRoutes);
-app.use('/inits', initRoutes);
+app.use('/', initRoutes);
 app.use('/recommendations', recommendationRoutes);
 
 const PORT = process.env.PORT || 5000;
