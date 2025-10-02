@@ -124,3 +124,8 @@ MONGO_URI="${your_atlas_url}"
 * Back-end  : `Express, JWT`
 * Database  : `MongoDB`
 
+### 5.2. Future Functionality
+
+Since UNSW handbook information isn't available in the API, the current course suggestion algorithm is purely based on the subject school/faculty and course name similarity. Once we have access to the UNSW handbook we can update our algorithm to be much more complex and customisable with key words and interests affecting final course suggestions. 
+
+
