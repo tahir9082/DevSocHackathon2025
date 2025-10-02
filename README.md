@@ -17,8 +17,7 @@ The point is, as useful as the UNSW handbook might be, it lacks the personalised
 
 This is how our project, Reco, came to be. A course planner app that suggests courses based on a pre-determined criteria that you can choose yourself.
 
-## <img width="324" height="291" alt="image" src="https://github.com/user-attachments/assets/bd94fbce-fb24-46f2-a590-efea9bbff07c" />
-: 2. Reco 
+## <img width="32" height="29" alt="image" src="https://github.com/user-attachments/assets/bd94fbce-fb24-46f2-a590-efea9bbff07c" />: 2. Reco 
 
 ### 2.1. Product Introduction 
 
