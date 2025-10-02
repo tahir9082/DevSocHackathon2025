@@ -1,5 +1,5 @@
 # DevSocHackathon2025
-2025 devsoc hackathon
+2025 devsoc hackathon submission
 By; Tahir, Mahir, Alfis, David
 # Project Reco
 
