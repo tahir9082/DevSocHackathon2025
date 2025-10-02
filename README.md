@@ -5,7 +5,7 @@ By; Tahir, Mahir, Alfis, David
 
 ## 🏹: 1. Motivation 
 
-Picking courses at UNSW can sometimes be challenging, especially as a first year student without a general idea of what they would like to pursue as a career.
+Picking courses at UNSW can sometimes be challenging, especially as a first year student without a general idea of what you'd like to pursue as a career.
 
 Perhaps you're a third year student regretting the decision to do Computer Science entirely, and want to switch to something else but you don't know what. 
 
