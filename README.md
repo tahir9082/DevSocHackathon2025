@@ -15,7 +15,7 @@ What do you search for? How can you filter based on core topics? How can you cho
 
 The point is, as useful as the UNSW handbook might be, it lacks the personalised experience that we provide with our solution.
 
-This is how our project, Reco, came to be. A course planner app that suggests courses based on a pre-determined criteria that you can choose yourself.
+This is how our project, Reco, came to be. A course planner app that suggests courses based on a pre-determined criteria that you can customise yourself.
 
 ## <img width="32" height="29" alt="image" src="https://github.com/user-attachments/assets/bd94fbce-fb24-46f2-a590-efea9bbff07c" />: 2. Reco 
 
