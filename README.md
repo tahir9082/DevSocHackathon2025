@@ -1,5 +1,5 @@
 # Reco
-2025 DevSoc Flagship Hackathon
+2025 DevSoc Flagship Hackathon (Shortlisted)
 By; Tahir, Mahir, Alfis, David
 
 ## "Your WAM is in safe hands."
